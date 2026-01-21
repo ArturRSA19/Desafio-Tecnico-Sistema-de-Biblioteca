@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+}
+
+model Cliente {
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
+  nome     String
+  cpf      String    @unique
+  reservas Reserva[]
+}
+
+model Livro {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  titulo     String
+  autor      String
+  disponivel Boolean   @default(true)
+  reservas   Reserva[]
+}
+
+model Reserva {
+  id                     String    @id @default(auto()) @map("_id") @db.ObjectId
+  clienteId              String    @db.ObjectId
+  livroId                String    @db.ObjectId
+  dataReserva            DateTime
+  dataPrevistaDevolucao  DateTime
+  dataDevolucao          DateTime?
+  cliente                Cliente   @relation(fields: [clienteId], references: [id])
+  livro                  Livro     @relation(fields: [livroId], references: [id])
+}
