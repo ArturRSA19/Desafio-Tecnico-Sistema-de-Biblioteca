@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { ClientesModule } from './clientes/clientes.module';
+import { LivrosModule } from './livros/livros.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ClientesModule } from './clientes/clientes.module';
     MongooseModule.forRoot(process.env.MONGODB_URI || ''),
     PrismaModule,
     ClientesModule,
+    LivrosModule,
   ],
   controllers: [AppController],
   providers: [AppService],
