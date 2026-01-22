@@ -13,7 +13,7 @@ import { ReservasModule } from './reservas/reservas.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MongooseModule.forRoot(process.env.MONGODB_URI || ''),
+    MongooseModule.forRoot(process.env.DATABASE_URL || ''),
     PrismaModule,
     ClientesModule,
     LivrosModule,
