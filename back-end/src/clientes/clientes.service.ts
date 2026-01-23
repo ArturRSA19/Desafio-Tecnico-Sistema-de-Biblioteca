@@ -126,6 +126,17 @@ export class ClientesService {
     // Verifica se o cliente existe
     await this.findOne(id);
 
+    // Verifica se há reservas vinculadas
+    const reservasVinculadas = await this.prisma.reserva.count({
+      where: { clienteId: id },
+    });
+
+    if (reservasVinculadas > 0) {
+      throw new ConflictException(
+        'Não é possível excluir o cliente porque existem reservas vinculadas',
+      );
+    }
+
     // Remove o cliente
     await this.prisma.cliente.delete({
       where: { id },
