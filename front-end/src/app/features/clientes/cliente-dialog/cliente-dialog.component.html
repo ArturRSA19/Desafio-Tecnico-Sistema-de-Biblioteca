@@ -1,0 +1,39 @@
+<div class="dialog-header">
+  <h2 mat-dialog-title>{{ isEdit ? 'Editar Cliente' : 'Novo Cliente' }}</h2>
+  <button mat-icon-button type="button" class="close-button" (click)="onCancel()" aria-label="Fechar">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+    <div class="form-field-wrapper">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nome completo</mat-label>
+        <input matInput formControlName="nome">
+        @if (form.get('nome')?.invalid && form.get('nome')?.touched) {
+          <mat-error class="field-error">{{ getErrorMessage('nome') }}</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="form-field-wrapper">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>CPF</mat-label>
+        <input matInput formControlName="cpf" appCpfMask>
+        @if (form.get('cpf')?.invalid && form.get('cpf')?.touched) {
+          <mat-error class="field-error">{{ getErrorMessage('cpf') }}</mat-error>
+        }
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions>
+    <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="loading()" class="cancel-btn">
+      Cancelar
+    </button>
+    <button mat-flat-button type="submit" [disabled]="loading()" class="save-btn">
+      {{ loading() ? 'Salvando...' : 'Salvar' }}
+    </button>
+  </mat-dialog-actions>
+</form>
