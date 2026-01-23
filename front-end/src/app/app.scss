@@ -1,0 +1,38 @@
+﻿.app-shell {
+  display: flex;
+  min-height: 100vh;
+  background: #f8f4ef;
+}
+
+.app-sidebar {
+  flex: 0 0 260px;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.main-content {
+  flex: 1;
+  padding: 32px 40px 48px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media (max-width: 1024px) {
+  .app-shell {
+    flex-direction: column;
+  }
+
+  .app-sidebar {
+    flex: 0 0 auto;
+  }
+
+  .main-content {
+    padding: 24px;
+  }
+}
