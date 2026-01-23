@@ -1,0 +1,99 @@
+<div class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Livros</h1>
+      <p class="page-subtitle">Gerencie o acervo da biblioteca</p>
+    </div>
+    <button mat-flat-button class="primary-button" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon>
+      Novo Livro
+    </button>
+  </header>
+
+  <section class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>menu_book</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">Total de Títulos</span>
+        <span class="stat-value">{{ totalTitulos() }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon soft">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">Disponíveis</span>
+        <span class="stat-value">{{ totalDisponiveis() }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon warning">
+        <mat-icon>bookmark</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">Reservados</span>
+        <span class="stat-value">{{ totalReservados() }}</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="toolbar-card">
+    <div class="search-input" role="search">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input
+        type="text"
+        placeholder="Buscar livros..."
+        [ngModel]="searchText()"
+        (ngModelChange)="searchText.set($event); onSearch()"
+        autocomplete="off"
+        aria-label="Buscar livros" />
+      @if (searchText()) {
+        <button type="button" class="icon-button" (click)="searchText.set(''); onSearch()" aria-label="Limpar busca">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </div>
+    <div class="filter-pills">
+      <button type="button" class="pill" [class.active]="filtroAtivo() === 'todos'" (click)="setFiltro('todos')">Todos</button>
+      <button type="button" class="pill" [class.active]="filtroAtivo() === 'disponiveis'" (click)="setFiltro('disponiveis')">Disponíveis</button>
+      <button type="button" class="pill" [class.active]="filtroAtivo() === 'reservados'" (click)="setFiltro('reservados')">Reservados</button>
+    </div>
+  </section>
+
+  @if (loading()) {
+    <app-loading-spinner />
+  } @else {
+    <div class="livros-grid">
+      @for (livro of filteredLivros(); track livro.id) {
+        <article class="livro-card">
+          <div class="livro-cover">
+            <mat-icon>menu_book</mat-icon>
+          </div>
+          <div class="livro-body">
+            <h3>{{ livro.titulo }}</h3>
+            <p>{{ livro.autor }}</p>
+            <span class="badge" [class.available]="livro.disponivel" [class.reserved]="!livro.disponivel">
+              {{ livro.disponivel ? 'Disponível' : 'Reservado' }}
+            </span>
+          </div>
+          <div class="livro-actions">
+            <button mat-button class="outline-button" (click)="openEditDialog(livro)">
+              <mat-icon>edit</mat-icon>
+              Editar
+            </button>
+            <button mat-button class="outline-button danger" (click)="deleteLivro(livro)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </article>
+      } @empty {
+        <div class="no-data">
+          <p>Nenhum livro encontrado</p>
+        </div>
+      }
+    </div>
+  }
+</div>
