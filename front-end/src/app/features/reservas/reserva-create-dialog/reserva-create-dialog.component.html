@@ -1,0 +1,63 @@
+<div class="dialog-header">
+  <h2 mat-dialog-title>Nova Reserva</h2>
+  <button mat-icon-button type="button" class="close-button" (click)="onCancel()" aria-label="Fechar">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Cliente</mat-label>
+      <mat-select formControlName="clienteId">
+        @for (cliente of clientes(); track cliente.id) {
+          <mat-option [value]="cliente.id">{{ cliente.nome }}</mat-option>
+        }
+      </mat-select>
+      @if (form.get('clienteId')?.invalid && form.get('clienteId')?.touched) {
+        <mat-error>Selecione um cliente</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Livro</mat-label>
+      <mat-select formControlName="livroId">
+        @for (livro of livrosDisponiveis(); track livro.id) {
+          <mat-option [value]="livro.id">{{ livro.titulo }} - {{ livro.autor }}</mat-option>
+        }
+      </mat-select>
+      @if (form.get('livroId')?.invalid && form.get('livroId')?.touched) {
+        <mat-error>Selecione um livro</mat-error>
+      }
+      @if (livrosDisponiveis().length === 0) {
+        <mat-hint>Nenhum livro disponível no momento</mat-hint>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Data da Reserva</mat-label>
+      <input matInput [matDatepicker]="pickerReserva" formControlName="dataReserva" readonly (click)="pickerReserva.open()">
+      <mat-datepicker-toggle matSuffix [for]="pickerReserva"></mat-datepicker-toggle>
+      <mat-datepicker #pickerReserva></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Data Prevista de Devolução</mat-label>
+      <input matInput [matDatepicker]="pickerDevolucao" formControlName="dataPrevistaDevolucao" [min]="minDate" readonly (click)="pickerDevolucao.open()">
+      <mat-datepicker-toggle matSuffix [for]="pickerDevolucao"></mat-datepicker-toggle>
+      <mat-datepicker #pickerDevolucao></mat-datepicker>
+      @if (form.get('dataPrevistaDevolucao')?.invalid && form.get('dataPrevistaDevolucao')?.touched) {
+        <mat-error>Selecione uma data</mat-error>
+      }
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="loading()" class="cancel-btn">
+      Cancelar
+    </button>
+    <button mat-flat-button type="submit" [disabled]="loading() || livrosDisponiveis().length === 0" class="save-btn">
+      {{ loading() ? 'Criando...' : 'Criar Reserva' }}
+    </button>
+  </mat-dialog-actions>
+</form>

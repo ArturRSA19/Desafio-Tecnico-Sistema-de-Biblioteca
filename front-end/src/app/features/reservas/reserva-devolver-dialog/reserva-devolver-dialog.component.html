@@ -1,0 +1,65 @@
+<h2 mat-dialog-title>Devolver Livro</h2>
+
+<mat-dialog-content>
+  <div class="content-center">
+  <div class="info-section">
+    <h3>Informações da Reserva</h3>
+    
+    <div class="info-row">
+      <span class="label">Cliente:</span>
+      <span class="value">{{ data.cliente.nome }}</span>
+    </div>
+
+    <div class="info-row">
+      <span class="label">Livro:</span>
+      <span class="value">{{ data.livro.titulo }}</span>
+    </div>
+
+    <div class="info-row">
+      <span class="label">Data Prevista:</span>
+      <span class="value">{{ data.dataPrevistaDevolucao | dateFormat }}</span>
+    </div>
+
+    <div class="info-row">
+      <span class="label">Data de Devolução:</span>
+      <span class="value">{{ hojeStr | dateFormat }}</span>
+    </div>
+  </div>
+
+  @if (multaInfo() && multaInfo()!.dias > 0) {
+    <div class="multa-section">
+      <mat-icon class="warning-icon">warning</mat-icon>
+      <h3>Multa por Atraso</h3>
+      
+      <div class="info-row">
+        <span class="label">Dias de atraso:</span>
+        <span class="value highlight">{{ multaInfo()!.dias }} dias</span>
+      </div>
+
+      <div class="info-row">
+        <span class="label">Valor da multa:</span>
+        <span class="value highlight">R$ {{ multaInfo()!.multa | number:'1.2-2' }}</span>
+      </div>
+
+      <div class="formula">
+        <strong>Cálculo:</strong>
+        <p>R$ 10,00 + (R$ 10,00 × 5% × {{ multaInfo()!.dias }}) = R$ {{ multaInfo()!.multa | number:'1.2-2' }}</p>
+      </div>
+    </div>
+  } @else {
+    <div class="no-multa-section">
+      <mat-icon class="success-icon">check_circle</mat-icon>
+      <p>Sem multa - Devolução dentro do prazo</p>
+    </div>
+  }
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="loading()">
+    Cancelar
+  </button>
+  <button mat-raised-button color="primary" (click)="onConfirm()" [disabled]="loading()">
+    {{ loading() ? 'Processando...' : 'Confirmar Devolução' }}
+  </button>
+</mat-dialog-actions>

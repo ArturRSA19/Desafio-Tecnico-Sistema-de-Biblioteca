@@ -1,0 +1,139 @@
+<div class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Reservas</h1>
+      <p class="page-subtitle">Acompanhe todas as reservas e devoluções</p>
+    </div>
+    <button mat-flat-button class="primary-button" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon>
+      Nova Reserva
+    </button>
+  </header>
+
+  <section class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>event</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">Total</span>
+        <span class="stat-value">{{ totalReservas() }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon soft">
+        <mat-icon>schedule</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">Ativas</span>
+        <span class="stat-value">{{ totalAtivas() }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon warning">
+        <mat-icon>error</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">Em Atraso</span>
+        <span class="stat-value">{{ totalAtraso() }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon success">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">Devolvidas</span>
+        <span class="stat-value">{{ totalDevolvidas() }}</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="toolbar-card">
+    <div class="filter-pills">
+      <button type="button" class="pill" [class.active]="filtroAtivo() === 'todas'" (click)="setFiltro('todas')">Todas</button>
+      <button type="button" class="pill" [class.active]="filtroAtivo() === 'ativas'" (click)="setFiltro('ativas')">Ativas</button>
+      <button type="button" class="pill" [class.active]="filtroAtivo() === 'atraso'" (click)="setFiltro('atraso')">Em Atraso</button>
+      <button type="button" class="pill" [class.active]="filtroAtivo() === 'devolvidas'" (click)="setFiltro('devolvidas')">Devolvidas</button>
+    </div>
+    <div class="search-input" role="search">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input
+        type="text"
+        placeholder="Buscar reservas..."
+        [ngModel]="searchText()"
+        (ngModelChange)="searchText.set($event)"
+        autocomplete="off"
+        aria-label="Buscar reservas" />
+      @if (searchText()) {
+        <button type="button" class="icon-button" (click)="searchText.set('')" aria-label="Limpar busca">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </div>
+  </section>
+
+  @if (loading()) {
+    <app-loading-spinner />
+  } @else {
+    <section class="data-card">
+      <div class="table-container">
+        <table mat-table [dataSource]="filteredReservas()">
+          <ng-container matColumnDef="cliente">
+            <th mat-header-cell *matHeaderCellDef>Cliente</th>
+            <td mat-cell *matCellDef="let reserva">{{ reserva.cliente.nome }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="livro">
+            <th mat-header-cell *matHeaderCellDef>Livro</th>
+            <td mat-cell *matCellDef="let reserva">{{ reserva.livro.titulo }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="dataReserva">
+            <th mat-header-cell *matHeaderCellDef>Data Reserva</th>
+            <td mat-cell *matCellDef="let reserva">{{ reserva.dataReserva | dateFormat }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="dataPrevista">
+            <th mat-header-cell *matHeaderCellDef>Devolução Prevista</th>
+            <td mat-cell *matCellDef="let reserva">{{ reserva.dataPrevistaDevolucao | dateFormat }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="dataDevolucao">
+            <th mat-header-cell *matHeaderCellDef>Devolução</th>
+            <td mat-cell *matCellDef="let reserva">{{ reserva.dataDevolucao | dateFormat }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let reserva">
+              <span [class]="'status-pill ' + getStatus(reserva).class">
+                {{ getStatus(reserva).text }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="acoes">
+            <th mat-header-cell *matHeaderCellDef class="actions-column">Ações</th>
+            <td mat-cell *matCellDef="let reserva" class="actions-column">
+              @if (!reserva.dataDevolucao) {
+                <button mat-stroked-button class="outline-button" (click)="openDevolverDialog(reserva)">
+                  Devolver
+                </button>
+              }
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        @if (filteredReservas().length === 0) {
+          <div class="no-data">
+            <p>Nenhuma reserva encontrada</p>
+          </div>
+        }
+      </div>
+    </section>
+  }
+</div>
