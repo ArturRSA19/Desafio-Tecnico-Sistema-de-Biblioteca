@@ -1,1 +1,180 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+
 /* You can add global styles to this file, and also import other style files */
+
+// Global styles
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', 'IBM Plex Sans', 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f8f4ef;
+  color: #2d2a26;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, .serif-title {
+  font-family: 'Playfair Display', 'Times New Roman', serif;
+}
+
+:root {
+  color-scheme: light;
+  --surface: #fbf8f4;
+  --surface-strong: #ffffff;
+  --surface-muted: #f3ede6;
+  --border: #e7ddd2;
+  --brand: #1f5a3a;
+  --brand-dark: #17452c;
+  --text-primary: #2d2a26;
+  --text-muted: #7b7166;
+  --accent: #f2c66d;
+  --danger: #d95c54;
+}
+
+// Utility classes
+.full-width {
+  width: 100%;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mt-1 { margin-top: 8px; }
+.mt-2 { margin-top: 16px; }
+.mt-3 { margin-top: 24px; }
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.mb-3 { margin-bottom: 24px; }
+
+// Responsive breakpoints
+@media (max-width: 600px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 601px) {
+  .show-mobile {
+    display: none !important;
+  }
+}
+
+// Snackbar styles
+.success-snackbar {
+  .mdc-snackbar__surface {
+    background: #16a34a !important;
+    border-radius: 14px !important;
+    box-shadow: 0 8px 24px rgba(22, 163, 74, 0.25) !important;
+    padding: 4px 8px !important;
+  }
+  
+  .mdc-snackbar__label {
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+  }
+  
+  .mat-mdc-snack-bar-action {
+    .mat-mdc-button {
+      color: #ecfdf3 !important;
+      font-weight: 600 !important;
+      border-radius: 10px !important;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.15) !important;
+      }
+    }
+  }
+}
+
+.error-snackbar {
+  .mdc-snackbar__surface {
+    background: #ef4444 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3) !important;
+  }
+
+  .mdc-snackbar__actions,
+  .mdc-snackbar__action {
+    background: transparent !important;
+  }
+  
+  .mdc-snackbar__label {
+    color: white !important;
+    font-weight: 500 !important;
+    font-size: 15px !important;
+  }
+  
+  .mat-mdc-snack-bar-action {
+    .mat-mdc-button {
+      position: relative !important;
+      color: white !important;
+      font-weight: 600 !important;
+      border-radius: 10px !important;
+      background: transparent !important;
+      
+      &:hover,
+      &:active,
+      &:focus-visible {
+        background: transparent !important;
+        outline: none !important;
+        box-shadow: none !important;
+      }
+
+      // Desabilitar TODOS os overlays do Material
+      .mat-mdc-button-persistent-ripple,
+      .mat-mdc-button-ripple,
+      .mdc-button__ripple,
+      &::before,
+      &::after {
+        content: none !important;
+        display: none !important;
+        opacity: 0 !important;
+        background: transparent !important;
+        pointer-events: none !important;
+      }
+
+      // Desabilitar state-layer
+      .mat-ripple,
+      .mat-mdc-focus-indicator {
+        display: none !important;
+      }
+    }
+  }
+
+  .mdc-button,
+  .mdc-button::before,
+  .mdc-button::after,
+  .mdc-button__ripple::before {
+    background-color: transparent !important;
+    opacity: 0 !important;
+  }
+
+  .mdc-snackbar__action-button,
+  .mdc-snackbar__action-button:hover,
+  .mdc-snackbar__action-button:active,
+  .mdc-snackbar__action-button:focus {
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .mdc-snackbar__action-button,
+  .mdc-snackbar__action-button:hover,
+  .mdc-snackbar__action-button:active,
+  .mdc-snackbar__action-button:focus {
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+}
+
