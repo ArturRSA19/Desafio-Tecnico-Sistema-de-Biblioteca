@@ -30,8 +30,11 @@ export class ReservasService {
     }
 
     // Valida se o livro existe
-    const livro = await this.prisma.livro.findUnique({
-      where: { id: livroId },
+    const livro = await this.prisma.livro.findFirst({
+      where: {
+        id: livroId,
+        OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }],
+      },
     });
 
     if (!livro) {

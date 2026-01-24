@@ -19,6 +19,7 @@ model Livro {
   titulo     String
   autor      String
   disponivel Boolean   @default(true)
+  deletedAt  DateTime?
   reservas   Reserva[]
 }
 

@@ -34,7 +34,10 @@ export class LivrosService {
    * Permite filtro opcional por disponibilidade
    */
   async findAll(disponivel?: boolean) {
-    const where = disponivel !== undefined ? { disponivel } : {};
+    const where = {
+      OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }],
+      ...(disponivel !== undefined ? { disponivel } : {}),
+    };
 
     const livros = await this.prisma.livro.findMany({
       where,
@@ -51,8 +54,11 @@ export class LivrosService {
    * Lança NotFoundException se não existir
    */
   async findOne(id: string) {
-    const livro = await this.prisma.livro.findUnique({
-      where: { id },
+    const livro = await this.prisma.livro.findFirst({
+      where: {
+        id,
+        OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }],
+      },
     });
 
     if (!livro) {
@@ -100,8 +106,12 @@ export class LivrosService {
       );
     }
 
-    await this.prisma.livro.delete({
+    await this.prisma.livro.update({
       where: { id },
+      data: {
+        deletedAt: new Date(),
+        disponivel: false,
+      },
     });
 
     return {
