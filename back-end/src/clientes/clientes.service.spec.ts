@@ -18,6 +18,9 @@ describe('ClientesService', () => {
       update: jest.fn(),
       delete: jest.fn(),
     },
+    reserva: {
+      count: jest.fn(),
+    },
   };
 
   beforeEach(async () => {
@@ -403,6 +406,7 @@ describe('ClientesService', () => {
       };
 
       mockPrismaService.cliente.findUnique.mockResolvedValue(cliente);
+      mockPrismaService.reserva.count.mockResolvedValue(0);
       mockPrismaService.cliente.delete.mockResolvedValue(cliente);
 
       // Act
@@ -412,6 +416,9 @@ describe('ClientesService', () => {
       expect(result).toEqual({ message: 'Cliente removido com sucesso' });
       expect(mockPrismaService.cliente.findUnique).toHaveBeenCalledWith({
         where: { id: clienteId },
+      });
+      expect(mockPrismaService.reserva.count).toHaveBeenCalledWith({
+        where: { clienteId: clienteId },
       });
       expect(mockPrismaService.cliente.delete).toHaveBeenCalledWith({
         where: { id: clienteId },
