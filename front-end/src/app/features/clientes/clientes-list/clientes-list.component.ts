@@ -60,16 +60,28 @@ export class ClientesListComponent implements OnInit {
   }
 
   onSearch(): void {
-    const search = this.searchText().toLowerCase();
-    if (!search) {
+    const rawSearch = this.searchText().trim();
+    if (!rawSearch) {
       this.filteredClientes.set(this.clientes());
       return;
     }
 
-    const filtered = this.clientes().filter(cliente =>
-      cliente.nome.toLowerCase().includes(search) ||
-      cliente.cpf.includes(search.replace(/\D/g, ''))
-    );
+    const normalize = (value: string) =>
+      value
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    const search = normalize(rawSearch);
+    const cpfSearch = rawSearch.replace(/\D/g, '');
+
+    const filtered = this.clientes().filter(cliente => {
+      const nomeMatch = normalize(cliente.nome).includes(search);
+      const cpfMatch = cpfSearch.length > 0 && cliente.cpf.includes(cpfSearch);
+      return nomeMatch || cpfMatch;
+    });
     this.filteredClientes.set(filtered);
   }
 
