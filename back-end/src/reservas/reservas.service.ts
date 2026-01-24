@@ -30,11 +30,8 @@ export class ReservasService {
     }
 
     // Valida se o livro existe
-    const livro = await this.prisma.livro.findFirst({
-      where: {
-        id: livroId,
-        OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }],
-      },
+    const livro = await this.prisma.livro.findUnique({
+      where: { id: livroId },
     });
 
     if (!livro) {
@@ -59,43 +56,39 @@ export class ReservasService {
     }
 
     // Cria a reserva e atualiza o livro em uma transação
-    const reserva = await this.prisma.$transaction(async (prisma) => {
-      // Cria a reserva
-      const novaReserva = await prisma.reserva.create({
-        data: {
-          clienteId,
-          clienteNome: cliente.nome,
-          clienteCpf: cliente.cpf,
-          livroId,
-          dataReserva: dataReservaDate,
-          dataPrevistaDevolucao: dataPrevistaDevolucaoDate,
-        },
-        include: {
-          cliente: {
-            select: {
-              id: true,
-              nome: true,
-              cpf: true,
-            },
-          },
-          livro: {
-            select: {
-              id: true,
-              titulo: true,
-              autor: true,
-              disponivel: true,
-            },
+    // Cria a reserva
+    const reserva = await this.prisma.reserva.create({
+      data: {
+        clienteId,
+        clienteNome: cliente.nome,
+        clienteCpf: cliente.cpf,
+        livroId,
+        dataReserva: dataReservaDate,
+        dataPrevistaDevolucao: dataPrevistaDevolucaoDate,
+      },
+      include: {
+        cliente: {
+          select: {
+            id: true,
+            nome: true,
+            cpf: true,
           },
         },
-      });
+        livro: {
+          select: {
+            id: true,
+            titulo: true,
+            autor: true,
+            disponivel: true,
+          },
+        },
+      },
+    });
 
-      // Atualiza o livro para indisponível
-      await prisma.livro.update({
-        where: { id: livroId },
-        data: { disponivel: false },
-      });
-
-      return novaReserva;
+    // Atualiza o livro para indisponível
+    await this.prisma.livro.update({
+      where: { id: livroId },
+      data: { disponivel: false },
     });
 
     return reserva;
@@ -197,37 +190,33 @@ export class ReservasService {
     const dataDevolucao = new Date();
 
     // Atualiza a reserva e o livro em uma transação
-    const reservaAtualizada = await this.prisma.$transaction(async (prisma) => {
-      // Atualiza a reserva com a data de devolução
-      const reservaDevolvida = await prisma.reserva.update({
-        where: { id: reservaId },
-        data: { dataDevolucao },
-        include: {
-          cliente: {
-            select: {
-              id: true,
-              nome: true,
-              cpf: true,
-            },
-          },
-          livro: {
-            select: {
-              id: true,
-              titulo: true,
-              autor: true,
-              disponivel: true,
-            },
+    // Atualiza a reserva com a data de devolução
+    const reservaAtualizada = await this.prisma.reserva.update({
+      where: { id: reservaId },
+      data: { dataDevolucao },
+      include: {
+        cliente: {
+          select: {
+            id: true,
+            nome: true,
+            cpf: true,
           },
         },
-      });
+        livro: {
+          select: {
+            id: true,
+            titulo: true,
+            autor: true,
+            disponivel: true,
+          },
+        },
+      },
+    });
 
-      // Atualiza o livro para disponível
-      await prisma.livro.update({
-        where: { id: reserva.livroId },
-        data: { disponivel: true },
-      });
-
-      return reservaDevolvida;
+    // Atualiza o livro para disponível
+    await this.prisma.livro.update({
+      where: { id: reserva.livroId },
+      data: { disponivel: true },
     });
 
     return reservaAtualizada;
