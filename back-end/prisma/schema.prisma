@@ -24,11 +24,13 @@ model Livro {
 
 model Reserva {
   id                     String    @id @default(auto()) @map("_id") @db.ObjectId
-  clienteId              String    @db.ObjectId
+  clienteId              String?   @db.ObjectId
+  clienteNome            String?
+  clienteCpf             String?
   livroId                String    @db.ObjectId
   dataReserva            DateTime
   dataPrevistaDevolucao  DateTime
   dataDevolucao          DateTime?
-  cliente                Cliente   @relation(fields: [clienteId], references: [id])
+  cliente                Cliente?  @relation(fields: [clienteId], references: [id])
   livro                  Livro     @relation(fields: [livroId], references: [id])
 }

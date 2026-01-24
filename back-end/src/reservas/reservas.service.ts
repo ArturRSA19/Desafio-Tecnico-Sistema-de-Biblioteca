@@ -61,6 +61,8 @@ export class ReservasService {
       const novaReserva = await prisma.reserva.create({
         data: {
           clienteId,
+          clienteNome: cliente.nome,
+          clienteCpf: cliente.cpf,
           livroId,
           dataReserva: dataReservaDate,
           dataPrevistaDevolucao: dataPrevistaDevolucaoDate,
@@ -123,7 +125,7 @@ export class ReservasService {
       },
     });
 
-    return reservas;
+    return reservas.map((reserva) => this.comClienteSnapshot(reserva));
   }
 
   /**
@@ -164,7 +166,7 @@ export class ReservasService {
       },
     });
 
-    return reservas;
+    return reservas.map((reserva) => this.comClienteSnapshot(reserva));
   }
 
   /**
@@ -273,7 +275,7 @@ export class ReservasService {
       );
 
       return {
-        ...reserva,
+        ...this.comClienteSnapshot(reserva),
         diasDeAtraso,
         multaTotal,
       };
@@ -339,6 +341,24 @@ export class ReservasService {
 
     if (!reserva) {
       throw new NotFoundException(`Reserva com ID ${id} não encontrada`);
+    }
+
+    return this.comClienteSnapshot(reserva);
+  }
+
+  /**
+   * Garante que o nome do cliente apareça no histórico mesmo após exclusão
+   */
+  private comClienteSnapshot(reserva: any) {
+    if (!reserva?.cliente && (reserva?.clienteNome || reserva?.clienteCpf)) {
+      return {
+        ...reserva,
+        cliente: {
+          id: reserva.clienteId ?? null,
+          nome: reserva.clienteNome,
+          cpf: reserva.clienteCpf,
+        },
+      };
     }
 
     return reserva;

@@ -126,20 +126,36 @@ export class ClientesService {
     // Verifica se o cliente existe
     await this.findOne(id);
 
-    // Verifica se há reservas vinculadas
-    const reservasVinculadas = await this.prisma.reserva.count({
-      where: { clienteId: id },
-    });
+    await this.prisma.$transaction(async (prisma) => {
+      // Verifica se há reservas ativas (não devolvidas)
+      const reservasAtivas = await prisma.reserva.count({
+        where: {
+          clienteId: id,
+          dataDevolucao: null,
+        },
+      });
 
-    if (reservasVinculadas > 0) {
-      throw new ConflictException(
-        'Não é possível excluir o cliente porque existem reservas vinculadas',
-      );
-    }
+      if (reservasAtivas > 0) {
+        throw new ConflictException(
+          'Não é possível excluir o cliente porque existem reservas ativas',
+        );
+      }
 
-    // Remove o cliente
-    await this.prisma.cliente.delete({
-      where: { id },
+      // Desvincula as reservas devolvidas do cliente (mantém histórico)
+      await prisma.reserva.updateMany({
+        where: {
+          clienteId: id,
+          dataDevolucao: { not: null },
+        },
+        data: {
+          clienteId: null,
+        },
+      });
+
+      // Remove o cliente
+      await prisma.cliente.delete({
+        where: { id },
+      });
     });
 
     return { message: 'Cliente removido com sucesso' };
