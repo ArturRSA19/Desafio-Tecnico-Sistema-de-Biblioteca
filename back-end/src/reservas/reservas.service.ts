@@ -99,27 +99,75 @@ export class ReservasService {
    * Inclui dados básicos do cliente e do livro
    */
   async findAll() {
-    const reservas = await this.prisma.reserva.findMany({
-      include: {
-        cliente: {
-          select: {
-            id: true,
-            nome: true,
-            cpf: true,
+    let reservas;
+
+    try {
+      reservas = await this.prisma.reserva.findMany({
+        include: {
+          cliente: {
+            select: {
+              id: true,
+              nome: true,
+              cpf: true,
+            },
+          },
+          livro: {
+            select: {
+              id: true,
+              titulo: true,
+              autor: true,
+            },
           },
         },
-        livro: {
-          select: {
-            id: true,
-            titulo: true,
-            autor: true,
+        orderBy: {
+          dataReserva: 'desc',
+        },
+      });
+    } catch (error) {
+      if (!this.isLivroInconsistenteError(error)) {
+        throw error;
+      }
+
+      reservas = await this.prisma.reserva.findMany({
+        include: {
+          cliente: {
+            select: {
+              id: true,
+              nome: true,
+              cpf: true,
+            },
           },
         },
-      },
-      orderBy: {
-        dataReserva: 'desc',
-      },
-    });
+        orderBy: {
+          dataReserva: 'desc',
+        },
+      });
+
+      const livroIds: string[] = Array.from(
+        new Set(
+          reservas
+            .map((reserva) => reserva.livroId)
+            .filter((livroId): livroId is string => Boolean(livroId)),
+        ),
+      );
+
+      const livros = await this.prisma.livro.findMany({
+        where: {
+          id: { in: livroIds },
+        },
+        select: {
+          id: true,
+          titulo: true,
+          autor: true,
+        },
+      });
+
+      const livroPorId = new Map(livros.map((livro) => [livro.id, livro]));
+      reservas = reservas.map((reserva) => ({
+        ...reserva,
+        livro: livroPorId.get(reserva.livroId) ?? null,
+      }));
+    }
 
     return reservas.map((reserva) => this.comClienteSnapshot(reserva));
   }
@@ -139,28 +187,77 @@ export class ReservasService {
     }
 
     // Busca as reservas do cliente
-    const reservas = await this.prisma.reserva.findMany({
-      where: { clienteId },
-      include: {
-        cliente: {
-          select: {
-            id: true,
-            nome: true,
-            cpf: true,
+    let reservas;
+
+    try {
+      reservas = await this.prisma.reserva.findMany({
+        where: { clienteId },
+        include: {
+          cliente: {
+            select: {
+              id: true,
+              nome: true,
+              cpf: true,
+            },
+          },
+          livro: {
+            select: {
+              id: true,
+              titulo: true,
+              autor: true,
+            },
           },
         },
-        livro: {
-          select: {
-            id: true,
-            titulo: true,
-            autor: true,
+        orderBy: {
+          dataReserva: 'desc',
+        },
+      });
+    } catch (error) {
+      if (!this.isLivroInconsistenteError(error)) {
+        throw error;
+      }
+
+      reservas = await this.prisma.reserva.findMany({
+        where: { clienteId },
+        include: {
+          cliente: {
+            select: {
+              id: true,
+              nome: true,
+              cpf: true,
+            },
           },
         },
-      },
-      orderBy: {
-        dataReserva: 'desc',
-      },
-    });
+        orderBy: {
+          dataReserva: 'desc',
+        },
+      });
+
+      const livroIds: string[] = Array.from(
+        new Set(
+          reservas
+            .map((reserva) => reserva.livroId)
+            .filter((livroId): livroId is string => Boolean(livroId)),
+        ),
+      );
+
+      const livros = await this.prisma.livro.findMany({
+        where: {
+          id: { in: livroIds },
+        },
+        select: {
+          id: true,
+          titulo: true,
+          autor: true,
+        },
+      });
+
+      const livroPorId = new Map(livros.map((livro) => [livro.id, livro]));
+      reservas = reservas.map((reserva) => ({
+        ...reserva,
+        livro: livroPorId.get(reserva.livroId) ?? null,
+      }));
+    }
 
     return reservas.map((reserva) => this.comClienteSnapshot(reserva));
   }
@@ -311,31 +408,75 @@ export class ReservasService {
    * Lança NotFoundException se não existir
    */
   async findOne(id: string) {
-    const reserva = await this.prisma.reserva.findUnique({
-      where: { id },
-      include: {
-        cliente: {
-          select: {
-            id: true,
-            nome: true,
-            cpf: true,
+    let reserva;
+
+    try {
+      reserva = await this.prisma.reserva.findUnique({
+        where: { id },
+        include: {
+          cliente: {
+            select: {
+              id: true,
+              nome: true,
+              cpf: true,
+            },
+          },
+          livro: {
+            select: {
+              id: true,
+              titulo: true,
+              autor: true,
+            },
           },
         },
-        livro: {
+      });
+    } catch (error) {
+      if (!this.isLivroInconsistenteError(error)) {
+        throw error;
+      }
+
+      reserva = await this.prisma.reserva.findUnique({
+        where: { id },
+        include: {
+          cliente: {
+            select: {
+              id: true,
+              nome: true,
+              cpf: true,
+            },
+          },
+        },
+      });
+
+      if (reserva?.livroId) {
+        const livro = await this.prisma.livro.findUnique({
+          where: { id: reserva.livroId },
           select: {
             id: true,
             titulo: true,
             autor: true,
           },
-        },
-      },
-    });
+        });
+
+        reserva = {
+          ...reserva,
+          livro: livro ?? null,
+        };
+      }
+    }
 
     if (!reserva) {
       throw new NotFoundException(`Reserva com ID ${id} não encontrada`);
     }
 
     return this.comClienteSnapshot(reserva);
+  }
+
+  private isLivroInconsistenteError(error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return message.includes(
+      'Inconsistent query result: Field livro is required to return data, got `null` instead.',
+    );
   }
 
   /**

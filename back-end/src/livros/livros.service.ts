@@ -43,7 +43,7 @@ export class LivrosService {
       },
     });
 
-    return livros;
+    return livros.filter((livro) => !livro.deletedAt);
   }
 
   /**
@@ -55,7 +55,7 @@ export class LivrosService {
       where: { id },
     });
 
-    if (!livro) {
+    if (!livro || livro.deletedAt) {
       throw new NotFoundException(`Livro com ID ${id} não encontrado`);
     }
 
@@ -100,12 +100,31 @@ export class LivrosService {
       );
     }
 
-    await this.prisma.livro.delete({
-      where: { id },
-    });
+    try {
+      await this.prisma.livro.delete({
+        where: { id },
+      });
+    } catch (error) {
+      if (!this.isLivroReservaRelationError(error)) {
+        throw error;
+      }
+
+      await this.prisma.livro.update({
+        where: { id },
+        data: {
+          deletedAt: new Date(),
+          disponivel: false,
+        },
+      });
+    }
 
     return {
       message: 'Livro removido com sucesso',
     };
+  }
+
+  private isLivroReservaRelationError(error: unknown) {
+    const code = (error as { code?: string })?.code;
+    return code === 'P2014';
   }
 }
