@@ -1,59 +1,168 @@
-# FrontEnd
+# Sistema de Biblioteca - Front-end Angular
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.1.
+![Sistema de Biblioteca](public/app.png)
 
-## Development server
+Sistema completo de gerenciamento de biblioteca desenvolvido com **Angular 21**.
 
-To start a local development server, run:
+## 🚀 Funcionalidades
 
+### Módulo de Clientes
+- Listagem de clientes 
+- Busca por nome ou CPF
+- Criar e editar clientes
+- Validação matemática de CPF
+- Máscara automática de CPF (XXX.XXX.XXX-XX)
+- Confirmação antes de excluir
+- Tratamento de CPF duplicado
+
+### Módulo de Livros
+- Listagem em cards responsivos
+- Filtros: Todos / Disponíveis / Reservados
+- Badge visual de status (disponível/reservado)
+- Criar e editar livros
+- Bloqueio de exclusão para livros reservados
+- Campo "disponível" controlado automaticamente
+
+### Módulo de Reservas
+- Listagem com abas: Total / Ativas / Em Atraso / Devolvidas
+- Criar nova reserva
+- Devolver livro com cálculo automático de multa
+- Fórmula de multa exibida: R$ 10,00 + (R$ 10,00 × 5% × dias)
+
+## 📦 Tecnologias Utilizadas
+
+- **Angular 21** (Standalone Components)
+- **Angular Material 21** (Componentes sem tema pré-definido)
+- **RxJS** para gerenciamento de estado
+- **TypeScript 5.9**
+- **SCSS** para estilização customizada
+- **Reactive Forms** com validações
+
+## 🔧 Instalação
+
+### Pré-requisitos
+- Node.js 18+ e npm
+- Angular CLI (`npm install -g @angular/cli`)
+- Backend NestJS rodando em `http://localhost:3000`
+
+### Passos
+
+1. **Clone o repositório ou navegue até a pasta do projeto**
 ```bash
-ng serve
+cd c:\Users\Administrador\Desktop\Desafio\front-end
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
+2. **Instale as dependências**
 ```bash
-ng generate component component-name
+npm install
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+3. **Configure o backend**
+Certifique-se de que o backend NestJS está rodando em `http://localhost:3000` com CORS habilitado.
 
+4. **Execute a aplicação**
 ```bash
-ng generate --help
+npm start
 ```
 
-## Building
-
-To build the project run:
-
-```bash
-ng build
+5. **Acesse no navegador**
+```
+http://localhost:4200
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## 📂 Estrutura do Projeto
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
+```
+src/
+├── app/
+│   ├── core/
+│   │   ├── models/               # Interfaces e DTOs
+│   │   ├── services/             # Services HTTP
+│   │   └── interceptors/         # Interceptor de erros
+│   │
+│   ├── shared/
+│   │   ├── components/           # Componentes compartilhados
+│   │   ├── pipes/                # Pipes (CPF, Date)
+│   │   ├── directives/           # Diretivas (CPF Mask)
+│   │   └── validators/           # Validadores customizados
+│   │
+│   ├── features/
+│   │   ├── clientes/            # Módulo de clientes
+│   │   ├── livros/              # Módulo de livros
+│   │   └── reservas/            # Módulo de reservas
+│   │
+│   ├── layout/                  # Header, Footer
+│   ├── app.routes.ts            # Rotas principais
+│   └── app.config.ts            # Configuração global
+│
+└── environments/                # Configurações de ambiente
 ```
 
-## Running end-to-end tests
+## 🎨 Design e UX
 
-For end-to-end (e2e) testing, run:
+### Paleta de Cores Personalizada
+- **Brand (Primary):** Verde escuro (#1f5a3a)
+- **Accent:** Dourado (#f2c66d)
+- **Danger:** Vermelho suave (#d95c54)
+- **Background:** Bege claro (#f8f4ef)
+- **Text Primary:** Preto suave (#2d2a26)
+- **Text Muted:** Marrom claro (#7b7166)
 
-```bash
-ng e2e
+### Fontes
+- **Sans-serif:** Inter (interface geral)
+- **Serif:** Playfair Display (títulos e destaques)
+
+### Responsividade
+- **Desktop:** Grid de 3 colunas, tabelas completas
+- **Tablet:** Grid de 2 colunas
+- **Mobile:** Grid de 1 coluna, menu colapsável
+
+## 🔑 Funcionalidades Chave
+
+### Validação de CPF
+```typescript
+// Validação matemática completa dos dígitos verificadores
+// Rejeita CPFs com todos os dígitos iguais
+// Formatação automática: XXX.XXX.XXX-XX
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+### Cálculo de Multa
+```typescript
+// Fórmula: R$ 10,00 + (R$ 10,00 × 5% × dias de atraso)
+// Exemplo: 4 dias de atraso = R$ 12,00
+// Dias arredondados para cima (ceil)
+```
 
-## Additional Resources
+### Tratamento de Erros
+- Interceptor HTTP global
+- Mensagens amigáveis via Snackbar
+- Status 400, 404, 409, 0 tratados
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## 📝 API Endpoints Consumidos
+
+### Clientes
+- `GET /clientes` - Listar todos
+- `GET /clientes/:id` - Buscar por ID
+- `POST /clientes` - Criar
+- `PATCH /clientes/:id` - Atualizar
+- `DELETE /clientes/:id` - Remover
+
+### Livros
+- `GET /livros` - Listar todos
+- `GET /livros?disponivel=true` - Filtrar por disponibilidade
+- `GET /livros/:id` - Buscar por ID
+- `POST /livros` - Criar
+- `PATCH /livros/:id` - Atualizar
+- `DELETE /livros/:id` - Remover
+
+### Reservas
+- `GET /reservas` - Listar todas
+- `GET /reservas/em-atraso` - Listar em atraso
+- `GET /reservas/cliente/:clienteId` - Por cliente
+- `GET /reservas/:id` - Buscar por ID
+- `POST /reservas` - Criar
+- `PATCH /reservas/:id/devolver` - Devolver
+
+---
+
+**Certifique-se de que o backend está rodando antes de usar a aplicação!**
