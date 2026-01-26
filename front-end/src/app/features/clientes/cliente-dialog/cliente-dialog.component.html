@@ -26,6 +26,16 @@
         }
       </mat-form-field>
     </div>
+
+    <div class="form-field-wrapper">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Telefone</mat-label>
+        <input matInput formControlName="telefone" placeholder="(00) 00000-0000" appTelefoneMask>
+        @if (form.get('telefone')?.invalid && form.get('telefone')?.touched) {
+          <mat-error class="field-error">{{ getErrorMessage('telefone') }}</mat-error>
+        }
+      </mat-form-field>
+    </div>
   </mat-dialog-content>
 
   <mat-dialog-actions>

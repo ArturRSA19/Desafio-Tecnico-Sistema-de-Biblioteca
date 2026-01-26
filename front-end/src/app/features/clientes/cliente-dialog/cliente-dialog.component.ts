@@ -11,6 +11,7 @@ import { ClienteService } from '../../../core/services/cliente.service';
 import { Cliente } from '../../../core/models/cliente.model';
 import { cpfValidator } from '../../../shared/validators/cpf.validator';
 import { CpfMaskDirective } from '../../../shared/directives/cpf-mask.directive';
+import { TelefoneMaskDirective } from '../../../shared/directives/telefone-mask.directive';
 
 @Component({
   selector: 'app-cliente-dialog',
@@ -24,7 +25,8 @@ import { CpfMaskDirective } from '../../../shared/directives/cpf-mask.directive'
     MatFormFieldModule,
     MatIconModule,
     MatSnackBarModule,
-    CpfMaskDirective
+    CpfMaskDirective,
+    TelefoneMaskDirective
   ],
   templateUrl: './cliente-dialog.component.html',
   styleUrl: './cliente-dialog.component.scss'
@@ -45,7 +47,8 @@ export class ClienteDialogComponent implements OnInit {
     
     this.form = this.fb.group({
       nome: [this.data?.nome || '', [Validators.required, Validators.minLength(3)]],
-      cpf: [this.data?.cpf || '', [Validators.required, cpfValidator()]]
+      cpf: [this.data?.cpf || '', [Validators.required, cpfValidator()]],
+      telefone: [this.data?.telefone || '', [Validators.required, Validators.minLength(10)]]
     });
   }
 
@@ -58,10 +61,11 @@ export class ClienteDialogComponent implements OnInit {
     this.loading.set(true);
     const formValue = this.form.value;
 
-    // Remove formatação do CPF antes de enviar
+    // Remove formatação do CPF e telefone antes de enviar
     const dto = {
       ...formValue,
-      cpf: formValue.cpf.replace(/\D/g, '')
+      cpf: formValue.cpf.replace(/\D/g, ''),
+      telefone: formValue.telefone.replace(/\D/g, '')
     };
 
     const request = this.isEdit
@@ -114,7 +118,8 @@ export class ClienteDialogComponent implements OnInit {
       return 'Campo obrigatório';
     }
     if (field.hasError('minlength')) {
-      return 'Mínimo de 3 caracteres';
+      const minLength = field.getError('minlength').requiredLength;
+      return `Mínimo de ${minLength} caracteres`;
     }
     if (field.hasError('cpfInvalido')) {
       return 'CPF inválido';

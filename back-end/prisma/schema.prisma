@@ -11,6 +11,7 @@ model Cliente {
   id       String    @id @default(auto()) @map("_id") @db.ObjectId
   nome     String
   cpf      String    @unique
+  telefone String?
   reservas Reserva[]
 }
 

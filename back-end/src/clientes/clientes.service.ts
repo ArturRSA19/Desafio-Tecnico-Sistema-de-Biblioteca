@@ -17,7 +17,7 @@ export class ClientesService {
    * Cria um novo cliente
    */
   async create(createClienteDto: CreateClienteDto) {
-    const { nome, cpf } = createClienteDto;
+    const { nome, cpf, telefone } = createClienteDto;
 
     // Normaliza o CPF
     const cpfNormalizado = normalizarCPF(cpf);
@@ -41,6 +41,7 @@ export class ClientesService {
       data: {
         nome,
         cpf: cpfNormalizado,
+        telefone,
       },
     });
 
@@ -80,7 +81,7 @@ export class ClientesService {
     // Verifica se o cliente existe
     await this.findOne(id);
 
-    const { nome, cpf } = updateClienteDto;
+    const { nome, cpf, telefone } = updateClienteDto;
 
     // Se o CPF está sendo atualizado
     if (cpf) {
@@ -106,15 +107,17 @@ export class ClientesService {
         data: {
           nome,
           cpf: cpfNormalizado,
+          telefone,
         },
       });
     }
 
-    // Atualiza apenas o nome
+    // Atualiza sem modificar o CPF
     return await this.prisma.cliente.update({
       where: { id },
       data: {
         nome,
+        telefone,
       },
     });
   }
@@ -126,16 +129,30 @@ export class ClientesService {
     // Verifica se o cliente existe
     await this.findOne(id);
 
-    // Verifica se há reservas ativas (não devolvidas)
-    const reservasAtivas = await this.prisma.reserva.count({
+    // Verifica se há reservas pendentes (não devolvidas)
+    const reservasPendentes = await this.prisma.reserva.count({
+      where: {
+        clienteId: id,
+        dataDevolucao: null,
+      },
+    });
+
+    if (reservasPendentes > 0) {
+      throw new ConflictException(
+        'Não é possível excluir o cliente pois existem livros ainda não devolvidos',
+      );
+    }
+
+    // Verifica se o cliente possui histórico de reservas
+    const totalReservas = await this.prisma.reserva.count({
       where: {
         clienteId: id,
       },
     });
 
-    if (reservasAtivas > 0) {
+    if (totalReservas > 0) {
       throw new ConflictException(
-        'Não é possível excluir o cliente porque existem reservas ativas',
+        'Não é possível excluir o cliente pois existem registros de reservas no histórico. Os dados devem ser mantidos para fins de auditoria',
       );
     }
 

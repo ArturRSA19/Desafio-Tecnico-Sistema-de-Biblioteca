@@ -9,6 +9,7 @@ import { FormsModule } from '@angular/forms';
 import { ClienteService } from '../../../core/services/cliente.service';
 import { Cliente } from '../../../core/models/cliente.model';
 import { CpfFormatPipe } from '../../../shared/pipes/cpf-format.pipe';
+import { TelefoneFormatPipe } from '../../../shared/pipes/telefone-format.pipe';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { ClienteDialogComponent } from '../cliente-dialog/cliente-dialog.component';
@@ -24,6 +25,7 @@ import { ClienteDialogComponent } from '../cliente-dialog/cliente-dialog.compone
     MatTooltipModule,
     FormsModule,
     CpfFormatPipe,
+    TelefoneFormatPipe,
     LoadingSpinnerComponent
   ],
   templateUrl: './clientes-list.component.html',
@@ -35,7 +37,7 @@ export class ClientesListComponent implements OnInit {
   filteredClientes = signal<Cliente[]>([]);
   loading = signal(false);
   searchText = signal('');
-  displayedColumns: string[] = ['nome', 'cpf', 'acoes'];
+  displayedColumns: string[] = ['nome', 'cpf', 'telefone', 'acoes'];
   totalClientes = computed(() => this.clientes().length);
 
   private clienteService = inject(ClienteService);
