@@ -26,7 +26,7 @@ describe('ClienteService', () => {
 
   it('deve buscar todos os clientes', () => {
     const mockClientes: Cliente[] = [
-      { id: '1', nome: 'João Silva', cpf: '12345678909' }
+      { id: '1', nome: 'João Silva', cpf: '12345678909', telefone: '11999999999' }
     ];
 
     service.getAll().subscribe(clientes => {
@@ -41,7 +41,8 @@ describe('ClienteService', () => {
   it('deve criar um novo cliente', () => {
     const createDto: CreateClienteDto = {
       nome: 'João Silva',
-      cpf: '12345678909'
+      cpf: '12345678909',
+      telefone: '11999999999'
     };
 
     const mockResponse: Cliente = { id: '1', ...createDto };
@@ -62,7 +63,8 @@ describe('ClienteService', () => {
     const mockResponse: Cliente = {
       id: clienteId,
       nome: 'João Silva Atualizado',
-      cpf: '12345678909'
+      cpf: '12345678909',
+      telefone: '11999999999'
     };
 
     service.update(clienteId, updateDto).subscribe(cliente => {
