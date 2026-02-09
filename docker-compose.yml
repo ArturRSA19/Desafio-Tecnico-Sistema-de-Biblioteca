@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # O motor de busca (Banco de Dados NoSQL)
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    container_name: biblioteca_elastic
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false # Desativado para facilitar o dev inicial
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    networks:
+      - elastic
+
+  # A interface visual (Dashboard)
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.0
+    container_name: biblioteca_kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - elastic
+
+volumes:
+  es_data:
+
+networks:
+  elastic:
+    driver: bridge
