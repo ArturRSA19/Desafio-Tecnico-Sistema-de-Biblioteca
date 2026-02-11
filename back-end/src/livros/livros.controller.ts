@@ -33,12 +33,19 @@ export class LivrosController {
    * Lista todos os livros
    * Query params opcionais:
    * - disponivel: true|false (filtra por disponibilidade)
+   * - updatedAfter: ISO 8601 date string (para carga incremental)
    */
   @Get()
-  findAll(@Query('disponivel') disponivel?: string) {
+  findAll(
+    @Query('disponivel') disponivel?: string,
+    @Query('updatedAfter') updatedAfter?: string,
+  ) {
     const disponivelBoolean =
       disponivel === 'true' ? true : disponivel === 'false' ? false : undefined;
-    return this.livrosService.findAll(disponivelBoolean);
+    
+    const updatedAfterDate = updatedAfter ? new Date(updatedAfter) : undefined;
+    
+    return this.livrosService.findAll(disponivelBoolean, updatedAfterDate);
   }
 
   /**

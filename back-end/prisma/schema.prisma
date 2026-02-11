@@ -21,6 +21,8 @@ model Livro {
   autor      String
   disponivel Boolean   @default(true)
   deletedAt  DateTime?
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
   reservas   Reserva[]
 }
 

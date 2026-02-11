@@ -31,19 +31,33 @@ export class LivrosService {
 
   /**
    * Lista todos os livros
-   * Permite filtro opcional por disponibilidade
+   * Permite filtro opcional por disponibilidade e data de atualização (carga incremental)
    */
-  async findAll(disponivel?: boolean) {
-    const where = disponivel !== undefined ? { disponivel } : {};
+  async findAll(disponivel?: boolean, updatedAfter?: Date) {
+    const where: any = {};
+    
+    if (disponivel !== undefined) {
+      where.disponivel = disponivel;
+    }
+    
+    // Filtro incremental: busca apenas livros modificados após a data especificada
+    if (updatedAfter) {
+      where.updatedAt = {
+        gt: updatedAfter,
+      };
+    }
+    
+    // Exclui livros soft-deleted
+    where.deletedAt = null;
 
     const livros = await this.prisma.livro.findMany({
       where,
       orderBy: {
-        titulo: 'asc',
+        updatedAt: 'desc', // Ordena por data de atualização (mais recentes primeiro)
       },
     });
 
-    return livros.filter((livro) => !livro.deletedAt);
+    return livros;
   }
 
   /**
