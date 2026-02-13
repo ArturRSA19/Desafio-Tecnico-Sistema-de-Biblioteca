@@ -46,12 +46,11 @@
       <input
         type="text"
         placeholder="Buscar livros..."
-        [ngModel]="searchText()"
-        (ngModelChange)="searchText.set($event); onSearch()"
+        [formControl]="searchControl"
         autocomplete="off"
         aria-label="Buscar livros" />
       @if (searchText()) {
-        <button type="button" class="icon-button" (click)="searchText.set(''); onSearch()" aria-label="Limpar busca">
+        <button type="button" class="icon-button" (click)="searchControl.setValue('')" aria-label="Limpar busca">
           <mat-icon>close</mat-icon>
         </button>
       }

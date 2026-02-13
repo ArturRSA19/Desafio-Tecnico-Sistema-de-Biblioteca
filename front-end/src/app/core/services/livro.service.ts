@@ -21,6 +21,12 @@ export class LivroService {
     return this.http.get<Livro[]>(this.apiUrl);
   }
 
+  search(query: string): Observable<Livro[]> {
+    return this.http.get<Livro[]>(`${this.apiUrl}/search`, {
+      params: { q: query },
+    });
+  }
+
   getById(id: string): Observable<Livro> {
     return this.http.get<Livro>(`${this.apiUrl}/${id}`);
   }

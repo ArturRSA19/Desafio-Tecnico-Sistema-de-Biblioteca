@@ -49,6 +49,15 @@ export class LivrosController {
   }
 
   /**
+   * GET /livros/search?q=termo
+   * Busca livros por título e autor usando Elasticsearch com fuzziness
+   */
+  @Get('search')
+  search(@Query('q') query?: string) {
+    return this.livrosService.search(query);
+  }
+
+  /**
    * GET /livros/:id
    * Busca um livro por ID
    */

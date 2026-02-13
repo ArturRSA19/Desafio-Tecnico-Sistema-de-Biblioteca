@@ -6,10 +6,22 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateLivroDto } from './dto/create-livro.dto';
 import { UpdateLivroDto } from './dto/update-livro.dto';
+import { ElasticsearchService } from '../elasticsearch/elasticsearch.service';
+
+type ElasticBookDocument = {
+  id?: string;
+  _id?: string;
+  titulo?: string;
+  autor?: string;
+  disponivel?: boolean;
+};
 
 @Injectable()
 export class LivrosService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly elasticsearchService: ElasticsearchService,
+  ) {}
 
   /**
    * Cria um novo livro
@@ -35,18 +47,18 @@ export class LivrosService {
    */
   async findAll(disponivel?: boolean, updatedAfter?: Date) {
     const where: any = {};
-    
+
     if (disponivel !== undefined) {
       where.disponivel = disponivel;
     }
-    
+
     // Filtro incremental: busca apenas livros modificados após a data especificada
     if (updatedAfter) {
       where.updatedAt = {
         gt: updatedAfter,
       };
     }
-    
+
     // Exclui livros soft-deleted
     where.deletedAt = null;
 
@@ -58,6 +70,49 @@ export class LivrosService {
     });
 
     return livros;
+  }
+
+  async search(query?: string) {
+    const term = query?.trim();
+
+    const client = this.elasticsearchService.getClient();
+
+    const response = await client.search<ElasticBookDocument>({
+      index: 'books',
+      size: 1000,
+      query: term
+        ? {
+            multi_match: {
+              query: term,
+              fields: ['titulo', 'autor'],
+              fuzziness: 'AUTO',
+            },
+          }
+        : { match_all: {} },
+    });
+
+    const livrosElastic = response.hits.hits
+      .map((hit) => {
+        const source = hit._source;
+
+        if (!source || !source.titulo || !source.autor) {
+          return null;
+        }
+
+        return {
+          id: source.id ?? source._id ?? hit._id,
+          titulo: source.titulo,
+          autor: source.autor,
+          disponivel: source.disponivel ?? true,
+        };
+      })
+      .filter((livro): livro is NonNullable<typeof livro> => livro !== null);
+
+    if (livrosElastic.length > 0) {
+      return livrosElastic;
+    }
+
+    return this.findAll();
   }
 
   /**
