@@ -7,6 +7,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ClientesModule } from './clientes/clientes.module';
 import { LivrosModule } from './livros/livros.module';
 import { ReservasModule } from './reservas/reservas.module';
+import { LocacoesModule } from './locacoes/locacoes.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ReservasModule } from './reservas/reservas.module';
     ClientesModule,
     LivrosModule,
     ReservasModule,
+    LocacoesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

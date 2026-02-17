@@ -1,0 +1,4 @@
+- pipeline.id: books
+  path.config: "/usr/share/logstash/pipeline/logstash.conf"
+- pipeline.id: rentals
+  path.config: "/usr/share/logstash/pipeline/logstash-rentals.conf"

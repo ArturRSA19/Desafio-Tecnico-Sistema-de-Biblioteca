@@ -35,6 +35,8 @@ model Reserva {
   dataReserva            DateTime
   dataPrevistaDevolucao  DateTime
   dataDevolucao          DateTime?
+  createdAt              DateTime? @default(now())
+  updatedAt              DateTime? @updatedAt
   cliente                Cliente?  @relation(fields: [clienteId], references: [id])
   livro                  Livro     @relation(fields: [livroId], references: [id])
 }

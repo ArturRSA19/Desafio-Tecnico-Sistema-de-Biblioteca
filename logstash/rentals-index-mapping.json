@@ -1,0 +1,16 @@
+{
+  "mappings": {
+    "properties": {
+      "idLocacao": { "type": "keyword" },
+      "dataLocacao": { "type": "date" },
+      "dataPrevistaDevolucao": { "type": "date" },
+      "dataDevolucao": { "type": "date" },
+      "status": { "type": "keyword" },
+      "idLivro": { "type": "keyword" },
+      "livroTitulo": { "type": "keyword" },
+      "idUsuario": { "type": "keyword" },
+      "usuarioNome": { "type": "keyword" },
+      "updatedAt": { "type": "date" }
+    }
+  }
+}

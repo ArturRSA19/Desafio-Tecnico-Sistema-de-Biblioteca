@@ -44,6 +44,8 @@ services:
       - "5044:5044"
     volumes:
       - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ./logstash/logstash-rentals.conf:/usr/share/logstash/pipeline/logstash-rentals.conf:ro
+      - ./logstash/pipelines.yml:/usr/share/logstash/config/pipelines.yml:ro
     environment:
       - "LS_JAVA_OPTS=-Xms256m -Xmx256m"
     depends_on:
