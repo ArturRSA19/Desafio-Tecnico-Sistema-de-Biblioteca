@@ -35,6 +35,7 @@ export class LivrosService {
         titulo,
         autor,
         disponivel: true,
+        deletedAt: null,
       },
     });
 
@@ -59,11 +60,18 @@ export class LivrosService {
       };
     }
 
-    // Exclui livros soft-deleted
-    where.deletedAt = null;
+    // Exclui livros soft-deleted (inclui registros antigos sem campo deletedAt)
+    const whereComSoftDelete = {
+      AND: [
+        where,
+        {
+          OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }],
+        },
+      ],
+    };
 
     const livros = await this.prisma.livro.findMany({
-      where,
+      where: whereComSoftDelete,
       orderBy: {
         updatedAt: 'desc', // Ordena por data de atualização (mais recentes primeiro)
       },
@@ -75,41 +83,68 @@ export class LivrosService {
   async search(query?: string) {
     const term = query?.trim();
 
+    if (!term) {
+      return this.findAll();
+    }
+
     const client = this.elasticsearchService.getClient();
 
     const response = await client.search<ElasticBookDocument>({
       index: 'books',
       size: 1000,
-      query: term
-        ? {
-            multi_match: {
-              query: term,
-              fields: ['titulo', 'autor'],
-              fuzziness: 'AUTO',
-            },
-          }
-        : { match_all: {} },
+      query: {
+        multi_match: {
+          query: term,
+          fields: ['titulo', 'autor'],
+          fuzziness: 'AUTO',
+        },
+      },
     });
 
-    const livrosElastic = response.hits.hits
+    const elasticIds = response.hits.hits
       .map((hit) => {
         const source = hit._source;
 
-        if (!source || !source.titulo || !source.autor) {
-          return null;
-        }
-
-        return {
-          id: source.id ?? source._id ?? hit._id,
-          titulo: source.titulo,
-          autor: source.autor,
-          disponivel: source.disponivel ?? true,
-        };
+        return source?.id ?? source?._id ?? hit._id;
       })
-      .filter((livro): livro is NonNullable<typeof livro> => livro !== null);
+      .filter((id): id is string => Boolean(id));
 
-    if (livrosElastic.length > 0) {
-      return livrosElastic;
+    if (elasticIds.length > 0) {
+      const livrosMongo = await this.prisma.livro.findMany({
+        where: {
+          AND: [
+            {
+              id: { in: elasticIds },
+            },
+            {
+              OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }],
+            },
+          ],
+        },
+      });
+
+      const livroPorId = new Map(livrosMongo.map((livro) => [livro.id, livro]));
+
+      const livrosConsistentes = elasticIds
+        .map((id) => {
+          const livro = livroPorId.get(id);
+
+          if (!livro) {
+            return null;
+          }
+
+          return {
+            id: livro.id,
+            titulo: livro.titulo,
+            autor: livro.autor,
+            disponivel: livro.disponivel,
+          };
+        })
+        .filter((livro): livro is NonNullable<typeof livro> => livro !== null);
+
+      if (livrosConsistentes.length > 0) {
+        return livrosConsistentes;
+      }
     }
 
     return this.findAll();

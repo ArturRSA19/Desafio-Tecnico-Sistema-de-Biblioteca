@@ -81,7 +81,9 @@ export class LivrosListComponent implements OnInit {
           this.searchText.set(term);
           this.loading.set(true);
 
-          const request$ = this.livroService.search(term);
+          const request$ = term
+            ? this.livroService.search(term)
+            : this.livroService.getAll();
 
           return request$.pipe(catchError(() => of([])));
         }),
