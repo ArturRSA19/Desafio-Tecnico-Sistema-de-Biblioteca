@@ -7,6 +7,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateLivroDto } from './dto/create-livro.dto';
 import { UpdateLivroDto } from './dto/update-livro.dto';
 import { ElasticsearchService } from '../elasticsearch/elasticsearch.service';
+import { AuditLoggerService } from '../audit/audit-logger.service';
+import { TipoEvento } from '../audit/enums/tipo-evento.enum';
 
 type ElasticBookDocument = {
   id?: string;
@@ -21,6 +23,7 @@ export class LivrosService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly elasticsearchService: ElasticsearchService,
+    private readonly auditLogger: AuditLoggerService,
   ) {}
 
   /**
@@ -37,6 +40,12 @@ export class LivrosService {
         disponivel: true,
         deletedAt: null,
       },
+    });
+
+    // Audit Trail – fire-and-forget
+    this.auditLogger.logEvent(TipoEvento.REGISTRO_LIVRO, livro.id, {
+      titulo: livro.titulo,
+      autor: livro.autor,
     });
 
     return livro;
@@ -185,6 +194,12 @@ export class LivrosService {
       },
     });
 
+    // Audit Trail – fire-and-forget
+    this.auditLogger.logEvent(TipoEvento.EDITADO_LIVRO, id, {
+      titulo: livro.titulo,
+      autor: livro.autor,
+    });
+
     return livro;
   }
 
@@ -221,6 +236,12 @@ export class LivrosService {
         },
       });
     }
+
+    // Audit Trail – fire-and-forget
+    this.auditLogger.logEvent(TipoEvento.EXCLUIDO_LIVRO, id, {
+      titulo: livro.titulo,
+      autor: livro.autor,
+    });
 
     return {
       message: 'Livro removido com sucesso',

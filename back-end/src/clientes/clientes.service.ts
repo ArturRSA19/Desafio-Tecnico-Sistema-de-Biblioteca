@@ -8,10 +8,15 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
 import { validarCPF, normalizarCPF } from './utils/cpf.utils';
+import { AuditLoggerService } from '../audit/audit-logger.service';
+import { TipoEvento } from '../audit/enums/tipo-evento.enum';
 
 @Injectable()
 export class ClientesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditLogger: AuditLoggerService,
+  ) {}
 
   /**
    * Cria um novo cliente
@@ -43,6 +48,13 @@ export class ClientesService {
         cpf: cpfNormalizado,
         telefone,
       },
+    });
+
+    // Audit Trail – fire-and-forget
+    this.auditLogger.logEvent(TipoEvento.REGISTRO_CLIENTE, cliente.id, {
+      nome: cliente.nome,
+      cpf: cliente.cpf,
+      telefone: cliente.telefone,
     });
 
     return cliente;
@@ -102,7 +114,7 @@ export class ClientesService {
       }
 
       // Atualiza com CPF normalizado
-      return await this.prisma.cliente.update({
+      const clienteAtualizado = await this.prisma.cliente.update({
         where: { id },
         data: {
           nome,
@@ -110,16 +122,34 @@ export class ClientesService {
           telefone,
         },
       });
+
+      // Audit Trail – fire-and-forget
+      this.auditLogger.logEvent(TipoEvento.EDITADO_CLIENTE, id, {
+        nome: clienteAtualizado.nome,
+        cpf: clienteAtualizado.cpf,
+        telefone: clienteAtualizado.telefone,
+      });
+
+      return clienteAtualizado;
     }
 
     // Atualiza sem modificar o CPF
-    return await this.prisma.cliente.update({
+    const clienteAtualizado = await this.prisma.cliente.update({
       where: { id },
       data: {
         nome,
         telefone,
       },
     });
+
+    // Audit Trail – fire-and-forget
+    this.auditLogger.logEvent(TipoEvento.EDITADO_CLIENTE, id, {
+      nome: clienteAtualizado.nome,
+      cpf: clienteAtualizado.cpf,
+      telefone: clienteAtualizado.telefone,
+    });
+
+    return clienteAtualizado;
   }
 
   /**
@@ -156,9 +186,21 @@ export class ClientesService {
       );
     }
 
+    // Audit Trail – capturamos os dados antes de remover
+    const clienteParaRemover = await this.prisma.cliente.findUnique({
+      where: { id },
+    });
+
     // Remove o cliente
     await this.prisma.cliente.delete({
       where: { id },
+    });
+
+    // Audit Trail – fire-and-forget
+    this.auditLogger.logEvent(TipoEvento.EXCLUIDO_CLIENTE, id, {
+      nome: clienteParaRemover?.nome,
+      cpf: clienteParaRemover?.cpf,
+      telefone: clienteParaRemover?.telefone,
     });
 
     return { message: 'Cliente removido com sucesso' };
