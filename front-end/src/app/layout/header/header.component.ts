@@ -32,6 +32,10 @@ import { MatIconModule } from '@angular/material/icon';
           <mat-icon>event_available</mat-icon>
           <span>Reservas</span>
         </a>
+        <a routerLink="/analytics" routerLinkActive="active" class="nav-link">
+          <mat-icon>bar_chart</mat-icon>
+          <span>Analytics</span>
+        </a>
       </nav>
     </aside>
   `,

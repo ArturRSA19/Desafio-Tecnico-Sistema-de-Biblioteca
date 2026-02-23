@@ -1,0 +1,39 @@
+.page {
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a2e22;
+  }
+
+  .page-description {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #5f7a68;
+  }
+}
+
+.dashboard-container {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+
+  iframe {
+    display: block;
+    width: 100%;
+    min-height: 800px;
+    border: none;
+  }
+}
