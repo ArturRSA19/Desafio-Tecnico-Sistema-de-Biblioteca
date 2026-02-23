@@ -6,10 +6,15 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateReservaDto } from './dto/create-reserva.dto';
+import { AuditLoggerService } from '../audit/audit-logger.service';
+import { TipoEvento } from '../audit/enums/tipo-evento.enum';
 
 @Injectable()
 export class ReservasService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditLogger: AuditLoggerService,
+  ) {}
 
   /**
    * Cria uma nova reserva
@@ -89,6 +94,16 @@ export class ReservasService {
     await this.prisma.livro.update({
       where: { id: livroId },
       data: { disponivel: false },
+    });
+
+    // Audit Trail – fire-and-forget
+    this.auditLogger.logEvent(TipoEvento.RESERVA_LIVRO, reserva.id, {
+      clienteId: reserva.clienteId,
+      clienteNome: reserva.clienteNome,
+      livroId: reserva.livroId,
+      livroTitulo: reserva.livro?.titulo,
+      dataReserva: reserva.dataReserva,
+      dataPrevistaDevolucao: reserva.dataPrevistaDevolucao,
     });
 
     return reserva;
@@ -314,6 +329,15 @@ export class ReservasService {
     await this.prisma.livro.update({
       where: { id: reserva.livroId },
       data: { disponivel: true },
+    });
+
+    // Audit Trail – fire-and-forget
+    this.auditLogger.logEvent(TipoEvento.DEVOLUCAO_LIVRO, reservaId, {
+      clienteId: reservaAtualizada.clienteId,
+      clienteNome: reservaAtualizada.clienteNome,
+      livroId: reservaAtualizada.livroId,
+      livroTitulo: reservaAtualizada.livro?.titulo,
+      dataDevolucao: dataDevolucao,
     });
 
     return reservaAtualizada;
