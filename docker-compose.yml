@@ -1,7 +1,58 @@
-version: '3.8'
-
 services:
-  # O motor de busca (Banco de Dados NoSQL)
+
+  # ==========================================================
+  #  BANCO DE DADOS — MongoDB (backend NestJS)
+  # ==========================================================
+  mongodb:
+    image: mongo:7
+    container_name: biblioteca_mongo
+    # Inicia o MongoDB como Replica Set (exigido pelo Prisma para transações)
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: |
+        mongosh --quiet --eval "
+          try {
+            rs.status();
+          } catch(e) {
+            rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'localhost:27017' }] });
+          }
+        " || exit 1
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 15s
+    networks:
+      - elastic
+
+  # ==========================================================
+  #  BACKEND — NestJS (API REST)
+  # ==========================================================
+  backend:
+    build:
+      context: ./back-end
+      dockerfile: Dockerfile
+    container_name: biblioteca_backend
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=mongodb://mongodb:27017/biblioteca?directConnection=true
+      - ELASTICSEARCH_NODE=http://elasticsearch:9200
+      - PORT=3000
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_started
+    networks:
+      - elastic
+
+  # ==========================================================
+  #  ELK — Elasticsearch (Motor de busca / NoSQL)
+  # ==========================================================
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
     container_name: biblioteca_elastic
@@ -11,7 +62,7 @@ services:
       - discovery.type=single-node
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-      - xpack.security.enabled=false # Desativado para facilitar o dev inicial
+      - xpack.security.enabled=false
     ulimits:
       memlock:
         soft: -1
@@ -23,7 +74,9 @@ services:
     networks:
       - elastic
 
-  # A interface visual (Dashboard)
+  # ==========================================================
+  #  ELK — Kibana (Dashboard / Visualização)
+  # ==========================================================
   kibana:
     image: docker.elastic.co/kibana/kibana:8.12.0
     container_name: biblioteca_kibana
@@ -36,7 +89,9 @@ services:
     networks:
       - elastic
 
-  # Sincronização automática de dados (ETL)
+  # ==========================================================
+  #  ELK — Logstash (Sincronização / ETL)
+  # ==========================================================
   logstash:
     image: docker.elastic.co/logstash/logstash:8.12.0
     container_name: biblioteca_logstash
@@ -50,12 +105,122 @@ services:
       - "LS_JAVA_OPTS=-Xms256m -Xmx256m"
     depends_on:
       - elasticsearch
+      - backend
     networks:
       - elastic
 
+  # ==========================================================
+  #  KONG — Banco de Dados PostgreSQL (exclusivo para Kong)
+  # ==========================================================
+  kong-db:
+    image: postgres:16-alpine
+    container_name: biblioteca_kong_db
+    environment:
+      POSTGRES_USER: kong
+      POSTGRES_DB: kong
+      POSTGRES_PASSWORD: kongpass
+    volumes:
+      - kong_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kong"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - elastic
+
+  # ==========================================================
+  #  KONG — Migrações (container efêmero)
+  # ==========================================================
+  kong-migrations:
+    image: kong:3.9
+    container_name: biblioteca_kong_migrations
+    command: kong migrations bootstrap
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-db
+      KONG_PG_PORT: "5432"
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kongpass
+      KONG_PG_DATABASE: kong
+    depends_on:
+      kong-db:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - elastic
+
+  # ==========================================================
+  #  KONG — API Gateway
+  # ==========================================================
+  kong:
+    image: kong:3.9
+    container_name: biblioteca_kong
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-db
+      KONG_PG_PORT: "5432"
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kongpass
+      KONG_PG_DATABASE: kong
+      KONG_PROXY_LISTEN: "0.0.0.0:8000"
+      KONG_ADMIN_LISTEN: "0.0.0.0:8001"
+      KONG_ADMIN_GUI_LISTEN: "0.0.0.0:8002"
+      # Necessário para que X-Forwarded-For seja confiável (testes ip-restriction)
+      KONG_TRUSTED_IPS: "0.0.0.0/0,::/0"
+      KONG_REAL_IP_HEADER: "X-Forwarded-For"
+      KONG_REAL_IP_RECURSIVE: "on"
+      KONG_LOG_LEVEL: info
+      KONG_PROXY_ACCESS_LOG: "/dev/stdout"
+      KONG_ADMIN_ACCESS_LOG: "/dev/stdout"
+      KONG_PROXY_ERROR_LOG: "/dev/stderr"
+      KONG_ADMIN_ERROR_LOG: "/dev/stderr"
+    ports:
+      - "8000:8000"   # Proxy (entrada pública)
+      - "8001:8001"   # Admin API
+      - "8002:8002"   # Admin GUI (Kong Manager)
+    depends_on:
+      kong-db:
+        condition: service_healthy
+      kong-migrations:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    restart: on-failure
+    networks:
+      - elastic
+
+  # ==========================================================
+  #  KONGA — Interface de Administração do Kong
+  # ==========================================================
+  konga:
+    image: pantsel/konga:0.14.9
+    container_name: biblioteca_konga
+    environment:
+      NODE_ENV: production
+      TOKEN_SECRET: biblioteca-konga-secret-2026
+    ports:
+      - "1337:1337"
+    depends_on:
+      kong:
+        condition: service_healthy
+    networks:
+      - elastic
+
+# ==========================================================
+#  VOLUMES PERSISTENTES
+# ==========================================================
 volumes:
   es_data:
+  mongo_data:
+  kong_data:
 
+# ==========================================================
+#  REDE
+# ==========================================================
 networks:
   elastic:
     driver: bridge
