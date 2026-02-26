@@ -1,0 +1,30 @@
+# Dependências (serão instaladas no container)
+node_modules
+
+# Build artifacts
+dist
+
+# Ambiente local
+.env
+.env.*
+
+# Testes e cobertura
+test
+coverage
+*.spec.ts
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+
+# Documentação
+*.md
+LICENSE
+
+# OS
+.DS_Store
+Thumbs.db
