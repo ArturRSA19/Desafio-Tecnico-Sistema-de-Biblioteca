@@ -17,6 +17,9 @@ export const httpErrorInterceptor: HttpInterceptorFn = (req, next) => {
       } else if (error.status === 409) {
         message = error.error.message || 'Conflito de dados';
       } else if (error.status === 0) {
+        // Para POST/PUT, o networkInterceptor upstream já enfileira offline
+        // e retorna EMPTY, então este bloco só é atingido por GET/DELETE
+        // ou cenários edge onde o networkInterceptor não interceptou.
         message = 'Erro de conexão com o servidor';
       }
       
