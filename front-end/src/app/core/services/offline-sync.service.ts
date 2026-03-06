@@ -1,16 +1,29 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, DestroyRef, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { firstValueFrom } from 'rxjs';
+import { filter, firstValueFrom } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { offlineDb, type SyncQueueEntry } from '../db/offline.db';
+import { NetworkStatusService } from './network-status.service';
 
 @Injectable({ providedIn: 'root' })
 export class OfflineSyncService {
   private readonly http = inject(HttpClient);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly networkStatus = inject(NetworkStatusService);
 
   private syncing = false;
+
+  constructor() {
+    this.networkStatus.isOnline$
+      .pipe(
+        filter(online => online),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.syncPendingRequests());
+  }
 
   /**
    * Enfileira uma requisição para envio posterior quando a rede estiver disponível.

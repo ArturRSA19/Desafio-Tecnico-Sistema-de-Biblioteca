@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { EMPTY, catchError } from 'rxjs';
 
 import { OfflineSyncService } from '../services/offline-sync.service';
+import { NetworkStatusService } from '../services/network-status.service';
 
 /**
  * Interceptor funcional que captura requisições POST/PUT quando offline
@@ -21,9 +22,10 @@ export const networkInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   const offlineSyncService = inject(OfflineSyncService);
+  const networkStatus = inject(NetworkStatusService);
 
   // Pré-check: se já estamos offline, enfileira imediatamente
-  if (!navigator.onLine) {
+  if (!networkStatus.isOnline) {
     offlineSyncService.enqueue(req.urlWithParams, method as 'POST' | 'PUT', req.body);
     return EMPTY;
   }

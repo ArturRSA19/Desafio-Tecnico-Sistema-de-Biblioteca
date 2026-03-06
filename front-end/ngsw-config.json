@@ -28,13 +28,43 @@
   ],
   "dataGroups": [
     {
-      "name": "api-freshness",
-      "urls": ["/api/**"],
+      "name": "api-clientes",
+      "urls": ["/api/clientes/**"],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 50,
+        "maxAge": "1h",
+        "timeout": "5s"
+      }
+    },
+    {
+      "name": "api-livros",
+      "urls": ["/api/livros/**"],
       "cacheConfig": {
         "strategy": "freshness",
         "maxSize": 100,
         "maxAge": "1h",
-        "timeout": "10s"
+        "timeout": "5s"
+      }
+    },
+    {
+      "name": "api-reservas",
+      "urls": ["/api/reservas/**"],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 100,
+        "maxAge": "30m",
+        "timeout": "5s"
+      }
+    },
+    {
+      "name": "api-locacoes",
+      "urls": ["/api/locacoes/**"],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 200,
+        "maxAge": "30m",
+        "timeout": "5s"
       }
     }
   ]
