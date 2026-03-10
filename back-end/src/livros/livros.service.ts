@@ -31,12 +31,13 @@ export class LivrosService {
    * O campo disponivel é definido automaticamente como true
    */
   async create(createLivroDto: CreateLivroDto) {
-    const { titulo, autor } = createLivroDto;
+    const { titulo, autor, capaBase64 } = createLivroDto;
 
     const livro = await this.prisma.livro.create({
       data: {
         titulo,
         autor,
+        ...(capaBase64 && { capaBase64 }),
         disponivel: true,
         deletedAt: null,
       },
@@ -184,13 +185,14 @@ export class LivrosService {
     // Verifica se o livro existe
     await this.findOne(id);
 
-    const { titulo, autor } = updateLivroDto;
+    const { titulo, autor, capaBase64 } = updateLivroDto;
 
     const livro = await this.prisma.livro.update({
       where: { id },
       data: {
         ...(titulo && { titulo }),
         ...(autor && { autor }),
+        ...(capaBase64 !== undefined && { capaBase64: capaBase64 || null }),
       },
     });
 

@@ -69,7 +69,11 @@
       @for (livro of filteredLivros(); track livro.id) {
         <article class="livro-card">
           <div class="livro-cover">
-            <mat-icon>menu_book</mat-icon>
+            @if (livro.capaBase64) {
+              <img [src]="livro.capaBase64" alt="Capa de {{ livro.titulo }}" class="livro-cover-img">
+            } @else {
+              <mat-icon>menu_book</mat-icon>
+            }
           </div>
           <div class="livro-body">
             <h3>{{ livro.titulo }}</h3>

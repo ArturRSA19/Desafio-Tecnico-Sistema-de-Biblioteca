@@ -7,6 +7,38 @@
 
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
+    <div class="cover-upload-section">
+      <input
+        #fileInput
+        type="file"
+        accept="image/*"
+        capture="environment"
+        hidden
+        (change)="onFileSelected($event)">
+
+      @if (imagePreview()) {
+        <div class="cover-preview-wrapper">
+          <img [src]="imagePreview()" alt="Capa do livro" class="cover-preview">
+          <button
+            mat-icon-button
+            type="button"
+            class="remove-cover-btn"
+            (click)="removeImage()"
+            aria-label="Remover capa">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      } @else {
+        <button
+          type="button"
+          class="add-cover-btn"
+          (click)="triggerFileInput()">
+          <mat-icon>photo_camera</mat-icon>
+          <span>Adicionar Capa</span>
+        </button>
+      }
+    </div>
+
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Título</mat-label>
       <input matInput formControlName="titulo" placeholder="Digite o título do livro">
