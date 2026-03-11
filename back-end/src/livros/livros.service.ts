@@ -147,6 +147,7 @@ export class LivrosService {
             id: livro.id,
             titulo: livro.titulo,
             autor: livro.autor,
+            capaBase64: livro.capaBase64 ?? null,
             disponivel: livro.disponivel,
           };
         })

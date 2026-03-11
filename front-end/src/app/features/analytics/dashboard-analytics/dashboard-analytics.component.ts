@@ -2,11 +2,11 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 const KIBANA_DASHBOARD_URL =
-  'http://localhost:5601/app/dashboards#/view/d0f76154-c431-49e4-a4de-25345c4a1161' +
+  'http://localhost:5601/app/dashboards#/view/423022dc-9859-4509-b03b-06df722478f4' +
   '?embed=true' +
-  '&_g=(refreshInterval%3A(pause%3A!t%2Cvalue%3A60000)%2Ctime%3A(from%3Anow-30m%2Cto%3Anow))' +
-  '&show-time-filter=true' +
-  '&hide-filter-bar=true';
+  '&_g=(refreshInterval:(pause:!t,value:60000),time:(from:now-15m,to:now))' +
+  '&_a=()' +
+  '&show-time-filter=true';
 
 @Component({
   selector: 'app-dashboard-analytics',
