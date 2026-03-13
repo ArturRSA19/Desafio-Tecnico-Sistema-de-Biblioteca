@@ -1,4 +1,5 @@
-import { Component, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -6,7 +7,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { LivroService } from '../../../core/services/livro.service';
+import { VoiceRecognitionService } from '../../../core/services/voice-recognition.service';
 import { Livro } from '../../../core/models/livro.model';
 
 const MAX_WIDTH = 800;
@@ -22,16 +25,20 @@ const JPEG_QUALITY = 0.8;
     MatButtonModule,
     MatInputModule,
     MatFormFieldModule,
-    MatIconModule
+    MatIconModule,
+    MatSnackBarModule,
   ],
   templateUrl: './livro-dialog.component.html',
   styleUrl: './livro-dialog.component.scss'
 })
 export class LivroDialogComponent implements OnInit {
-  readonly dialogRef = inject(MatDialogRef<LivroDialogComponent>);
-  readonly data = inject<Livro | null>(MAT_DIALOG_DATA, { optional: true });
-  readonly fb = inject(FormBuilder);
+  readonly dialogRef    = inject(MatDialogRef<LivroDialogComponent>);
+  readonly data         = inject<Livro | null>(MAT_DIALOG_DATA, { optional: true });
+  readonly fb           = inject(FormBuilder);
   readonly livroService = inject(LivroService);
+  readonly voiceService = inject(VoiceRecognitionService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly snackBar   = inject(MatSnackBar);
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
@@ -39,6 +46,9 @@ export class LivroDialogComponent implements OnInit {
   loading = signal(false);
   imagePreview = signal<string | null>(null);
   isEdit = false;
+
+  /** Rastreia qual campo está escutando no momento: 'titulo' | 'autor' | null */
+  listeningField = signal<string | null>(null);
 
   ngOnInit(): void {
     this.isEdit = !!this.data;
@@ -52,6 +62,9 @@ export class LivroDialogComponent implements OnInit {
     if (this.data?.capaBase64) {
       this.imagePreview.set(this.data.capaBase64);
     }
+
+    // Garante que o microfone seja desligado ao destruir o componente (ex: fechar modal)
+    this.destroyRef.onDestroy(() => this.voiceService.stop());
   }
 
   triggerFileInput(): void {
@@ -103,6 +116,39 @@ export class LivroDialogComponent implements OnInit {
 
   onCancel(): void {
     this.dialogRef.close(false);
+  }
+
+  /**
+   * Inicia (ou cancela via toggle) a entrada de voz para o campo especificado.
+   * Clicar no mesmo microfone uma segunda vez encerra a gravação.
+   * Clicar em um campo diferente aborta o anterior automaticamente (via serviço).
+   */
+  startVoiceInput(controlName: string): void {
+    if (this.listeningField() === controlName) {
+      this.voiceService.stop();
+      this.listeningField.set(null);
+      return;
+    }
+
+    this.listeningField.set(controlName);
+
+    this.voiceService
+      .listen()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (transcript: string) => {
+          const capitalized = transcript.charAt(0).toUpperCase() + transcript.slice(1);
+          this.form.patchValue({ [controlName]: capitalized });
+          this.listeningField.set(null);
+        },
+        error: (msg: string) => {
+          this.listeningField.set(null);
+          this.snackBar.open(msg, 'OK', { duration: 4000 });
+        },
+        complete: () => {
+          this.listeningField.set(null);
+        },
+      });
   }
 
   getErrorMessage(fieldName: string): string {

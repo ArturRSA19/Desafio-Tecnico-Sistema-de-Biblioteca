@@ -42,6 +42,16 @@
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Título</mat-label>
       <input matInput formControlName="titulo" placeholder="Digite o título do livro">
+      <button
+        matSuffix
+        mat-icon-button
+        type="button"
+        [class.is-listening]="listeningField() === 'titulo'"
+        [disabled]="!voiceService.isSupported"
+        [attr.aria-label]="listeningField() === 'titulo' ? 'Parar gravação' : 'Ditar título'"
+        (click)="startVoiceInput('titulo')">
+        <mat-icon>{{ listeningField() === 'titulo' ? 'mic_off' : 'mic' }}</mat-icon>
+      </button>
       @if (form.get('titulo')?.invalid && form.get('titulo')?.touched) {
         <mat-error>{{ getErrorMessage('titulo') }}</mat-error>
       }
@@ -50,6 +60,16 @@
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Autor</mat-label>
       <input matInput formControlName="autor" placeholder="Digite o nome do autor">
+      <button
+        matSuffix
+        mat-icon-button
+        type="button"
+        [class.is-listening]="listeningField() === 'autor'"
+        [disabled]="!voiceService.isSupported"
+        [attr.aria-label]="listeningField() === 'autor' ? 'Parar gravação' : 'Ditar autor'"
+        (click)="startVoiceInput('autor')">
+        <mat-icon>{{ listeningField() === 'autor' ? 'mic_off' : 'mic' }}</mat-icon>
+      </button>
       @if (form.get('autor')?.invalid && form.get('autor')?.touched) {
         <mat-error>{{ getErrorMessage('autor') }}</mat-error>
       }
