@@ -135,7 +135,8 @@ services:
   kong-migrations:
     image: kong:3.9
     container_name: biblioteca_kong_migrations
-    command: kong migrations bootstrap
+    command: >
+      sh -c "kong migrations bootstrap 2>/dev/null || kong migrations up"
     environment:
       KONG_DATABASE: postgres
       KONG_PG_HOST: kong-db
@@ -188,7 +189,8 @@ services:
       test: ["CMD", "kong", "health"]
       interval: 15s
       timeout: 10s
-      retries: 5
+      retries: 10
+      start_period: 30s
     restart: on-failure
     networks:
       - elastic
