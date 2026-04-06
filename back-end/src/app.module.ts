@@ -6,7 +6,7 @@ import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { ClientesModule } from './clientes/clientes.module';
 import { LivrosModule } from './livros/livros.module';
-import { ReservasModule } from './reservas/reservas.module';
+import { ReservasModule } from './features/reservas/reservas.module';
 import { LocacoesModule } from './locacoes/locacoes.module';
 import { AuditModule } from './audit/audit.module';
 
